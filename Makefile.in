@@ -54,6 +54,12 @@ install:	all
 		@RANLIB@ @libdir@/libbas.a
 		@INSTALL@ -m 755 -d @mandir@/man1
 		@INSTALL@ -m 644 bas.1 @mandir@/man1/bas.1
+		@INSTALL@ -m 644 bas_direct.1 @mandir@/man1/bas_direct.1
+		@INSTALL@ -m 644 bas_files.1 @mandir@/man1/bas_files.1
+		@INSTALL@ -m 644 bas_functions.1 @mandir@/man1/bas_functions.1
+		@INSTALL@ -m 644 bas_statements.1 @mandir@/man1/bas_statements.1
+		@INSTALL@ -m 644 bas_matrix.1 @mandir@/man1/bas_matrix.1
+		@INSTALL@ -m 644 bas_msx_compatability.1 @mandir@/man1/bas_msx_compatability.1
 		make install-po
 
 .c.o:

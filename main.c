@@ -27,6 +27,8 @@
 #include "bas.h"
 /*}}}*/
 
+extern int use_color256;
+
 int main(int argc, char *argv[]) /*{{{*/
 {
   /* variables */ /*{{{*/
@@ -34,6 +36,7 @@ int main(int argc, char *argv[]) /*{{{*/
   int usage=0,o;
   const char *lp="/dev/null";
   int autoexec=0;
+  int color256=0;
   int print_end=1;
   int backslash_colon=0;
   int uppercase=0;
@@ -42,6 +45,7 @@ int main(int argc, char *argv[]) /*{{{*/
   static struct option lopts[]=
   {
     { "autoexec", no_argument, 0, 'a' },
+    { "color256", no_argument, 0, 'c' },
     { "lp", required_argument, 0, 'l' },
     { "help", no_argument, 0, 'h' },
     { "no-end-program", no_argument, 0, 'n' },
@@ -68,6 +72,7 @@ int main(int argc, char *argv[]) /*{{{*/
   {
     case 'a': autoexec=1; break;
     case 'b': backslash_colon=1; break;
+    case 'c': color256=1; break;
     case 'l': lp=optarg; break;
     case 'n': print_end=0; break;
     case 'u': uppercase=1; break;
@@ -79,9 +84,9 @@ int main(int argc, char *argv[]) /*{{{*/
   if (optind<argc) runFile=argv[optind++];
   if (usage==1)
   {
-    fputs(_("Usage: bas [-a] [-b] [-l file] [-n] [-r] [-u] [program [argument ...]]\n"),stderr);
+    fputs(_("Usage: bas [-a] [-b] [-c] [-l file] [-n] [-r] [-u] [program [argument ...]]\n"),stderr);
     fputs(_("       bas [--backslash-colon] [--lp file] [--restricted] [--uppercase] [program [argument ...]]\n"),stderr);
-    fputs(_("       bas [--autoexec] [--no-end-program] [program [argument ...]]\n"),stderr);
+    fputs(_("       bas [--autoexec] [--color256] [--no-end-program] [program [argument ...]]\n"),stderr);
     fputs(_("       bas -h|--help\n"),stderr);
     fputs(_("       bas --version\n"),stderr);
     fputs(  "\n",stderr);
@@ -90,9 +95,9 @@ int main(int argc, char *argv[]) /*{{{*/
   }
   if (usage==2)
   {
-    fputs(_("Usage: bas [-a] [-b] [-l file] [-n] [-r] [-u] [program [argument ...]]\n"),stdout);
+    fputs(_("Usage: bas [-a] [-b] [-c] [-l file] [-n] [-r] [-u] [program [argument ...]]\n"),stdout);
     fputs(_("       bas [--backslash-colon] [--lp file] [--restricted] [--uppercase] [program [argument ...]]\n"),stdout);
-    fputs(_("       bas [--autoexec] [--no-end-program] [program [argument ...]]\n"),stderr);
+    fputs(_("       bas [--autoexec] [--color256] [--no-end-program] [program [argument ...]]\n"),stderr);
     fputs(_("       bas -h|--help\n"),stdout);
     fputs(_("       bas --version\n"),stdout);
     fputs("\n",stdout);
@@ -100,6 +105,7 @@ int main(int argc, char *argv[]) /*{{{*/
     fputs("\n",stdout);
     fputs(_("-a, --autoexec         run './autoexec.bas' first\n"),stdout);
     fputs(_("-b, --backslash-colon  convert backslashs to colons\n"),stdout);
+    fputs(_("-c, --color256         allow 'COLOR 255,255,255', terminal must support it\n"),stdout);
     fputs(_("-l, --lp               write LPRINT output to file\n"),stdout);
     fputs(_("-n, --no-end-program   dont print 'END program' in direct mode\n"),stdout);
     fputs(_("-r, --restricted       forbid SHELL\n"),stdout);
@@ -118,6 +124,7 @@ int main(int argc, char *argv[]) /*{{{*/
   bas_argc=argc-optind;
   bas_argv=&argv[optind];
   bas_argv0=runFile;
+  use_color256=color256;
   /*}}}*/
   bas_init(backslash_colon,restricted,uppercase,print_end,lpfd);
   if (autoexec) bas_runFile(autoBas);

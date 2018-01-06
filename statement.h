@@ -1,5 +1,6 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
+extern int use_color256;
 
 extern struct Value *stmt_CALL(struct Value *value);
 extern struct Value *stmt_CASE(struct Value *value);
@@ -41,6 +42,7 @@ extern struct Value *stmt_KILL(struct Value *value);
 extern struct Value *stmt_LET(struct Value *value);
 extern struct Value *stmt_LINEINPUT(struct Value *value);
 extern struct Value *stmt_LIST_LLIST(struct Value *value);
+extern struct Value *stmt_CHAIN(struct Value *value);
 extern struct Value *stmt_LOAD(struct Value *value);
 extern struct Value *stmt_MERGE(struct Value *value);
 extern struct Value *stmt_LOCAL(struct Value *value);
@@ -70,6 +72,8 @@ extern struct Value *stmt_OPEN(struct Value *value);
 extern struct Value *stmt_OPTIONBASE(struct Value *value);
 extern struct Value *stmt_OPTIONRUN(struct Value *value);
 extern struct Value *stmt_OPTIONSTOP(struct Value *value);
+extern struct Value *stmt_OPTIONRAM(struct Value *value);
+extern struct Value *stmt_OPTIONSTRICT(struct Value *value);
 extern struct Value *stmt_OUT_POKE(struct Value *value);
 extern struct Value *stmt_PRINT_LPRINT(struct Value *value);
 extern struct Value *stmt_RANDOMIZE(struct Value *value);
@@ -88,7 +92,6 @@ extern struct Value *stmt_STOP(struct Value *value);
 extern struct Value *stmt_SUBEXIT(struct Value *value);
 extern struct Value *stmt_SWAP(struct Value *value);
 extern struct Value *stmt_SYSTEM(struct Value *value);
-
 extern struct Value *stmt_TROFF(struct Value *value);
 extern struct Value *stmt_TRON(struct Value *value);
 extern struct Value *stmt_TRUNCATE(struct Value *value);

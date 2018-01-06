@@ -17,6 +17,73 @@
 #endif
 /*}}}*/
 
+/* from: http://www.strudel.org.uk/itoa/ */
+int strreverse(char* begin, char* end) {
+        int count=0;
+	char aux;
+	while(end>begin){
+		aux=*end, *end--=*begin, *begin++=aux;
+		count++;
+	}
+	return count;
+}
+	
+int BAS_itoa(int value, char *string, int base) {
+#ifdef HAVE_ITOA
+        return itoa(value, string, base);
+#else
+	static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+	char *wstr=string;
+	int sign;
+	div_t res;
+
+	// Validate base
+	if (base<2 || base>35){ *wstr='\0'; return -1; }
+
+	// Take care of sign
+	if ((sign=value) < 0) value = -value;
+
+	// Conversion. Number is reversed.
+	do {
+		res = div(value,base);
+		*wstr++ = num[res.rem];
+	}while(value=res.quot);
+	if(sign<0) *wstr++='-';
+	*wstr='\0';
+
+	// Reverse string
+	return strreverse(string,wstr-1);
+#endif
+}
+
+int BAS_ultostr(unsigned long value, char *string, int base) {
+#ifdef HAVE_ULTOSTR
+        return ultostr(value, string, base);
+#else
+	static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+	char *wstr=string;
+	unsigned long sign;
+	div_t res;
+
+	// Validate base
+	if (base<2 || base>35){ *wstr='\0'; return -1; }
+
+	// Take care of sign
+	if ((sign=value) < 0) value = -value;
+
+	// Conversion. Number is reversed.
+	do {
+		res = div(value,base);
+		*wstr++ = num[res.rem];
+	}while(value=res.quot);
+	if(sign<0) *wstr++='-';
+	*wstr='\0';
+
+	// Reverse string
+	return strreverse(string,wstr-1);
+#endif
+}
+
 int cistrcmp(const char *s, const char *r) /*{{{*/
 {
   assert(s!=(char*)0);
@@ -158,6 +225,21 @@ int String_appendPrintf(struct String *this, const char *fmt, ...) /*{{{*/
   va_start(ap, fmt);
   l=vsprintf(buf,fmt,ap);
   va_end(ap);
+  j=this->length;
+  if (String_size(this,j+l)==-1) return -1;
+  memcpy(this->character+j,buf,l);
+  return 0;
+}
+/*}}}*/
+int String_appendBinary(struct String *this, const char *fmt, long int arg_li) /*{{{*/
+{
+  char string[1024];
+  char buf[1024];
+  size_t l,ll,j;
+
+  if (this->field) String_leaveField(this);
+  ll=BAS_ultostr((unsigned long)arg_li,(char *)(string),2);
+  l=sprintf(buf,fmt,(char *)(string));
   j=this->length;
   if (String_size(this,j+l)==-1) return -1;
   memcpy(this->character+j,buf,l);

@@ -1,12 +1,28 @@
-Changes compared to version 2.4
+(v2.5pw+) Differences from regular version (v2.5+)
 
-o  MERGE "file.bas" current with listing (direct mode only). Unlike LOAD 
+o  COLOR n,n,n can accept 0-255
+o  GOSUB n can evaluate an expression to T_INTEGER
+o  PAPER n sets the background color
+o  PEN n sets the foreground color
+o  INK$ n,"_6_digit_rgb_hex_value_" sets color value
+o  set --color256 on by default (invert switch)
+
+
+(v2.5) Changes compared to version 2.4
+
+o  add NeoVIM and "fte" to known text editors
+o  &B10101010 allow binary integer (like &H,&O)
+o  fixed RUN "file.bas" setting "unsaved=1"
+o  CHAIN "file.bas" execution with current variables intact. Unlike RUN 
+   it does not perform a NEW internally.
+o  MERGE "file.bas" with current listing (direct mode only). Unlike LOAD 
    it does not perform a NEW internally.
 o  -a in the directory Bas ia run from, first execute "./autoexec.bas"
 o  -n prevent "END program" from being printed
+o  -c use 256 colors instead of 16 colors
 
 
-Changes compared to version 2.3
+(v2.4) Changes compared to version 2.3
 
 o  Matrix inversion on integer arrays with option base 1 fixed
 o  PRINT USING behaviour for ! fixed

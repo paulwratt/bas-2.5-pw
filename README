@@ -1,3 +1,5 @@
+BAS 2.5pw+ (for differences see: NEWS)
+
 Bas is an interpreter for the classic dialect of the programming language
 BASIC.  It is pretty compatible to typical BASIC interpreters of the 1980s,
 unlike some other UNIX BASIC interpreters, that implement a different

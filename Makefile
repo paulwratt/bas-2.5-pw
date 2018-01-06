@@ -54,6 +54,12 @@ install:	all
 		ranlib ${exec_prefix}/lib/libbas.a
 		/usr/bin/install -c -m 755 -d ${datarootdir}/man/man1
 		/usr/bin/install -c -m 644 bas.1 ${datarootdir}/man/man1/bas.1
+		/usr/bin/install -c -m 644 bas_direct.1 ${datarootdir}/man/man1/bas_direct.1
+		/usr/bin/install -c -m 644 bas_files.1 ${datarootdir}/man/man1/bas_files.1
+		/usr/bin/install -c -m 644 bas_functions.1 ${datarootdir}/man/man1/bas_functions.1
+		/usr/bin/install -c -m 644 bas_statements.1 ${datarootdir}/man/man1/bas_statements.1
+		/usr/bin/install -c -m 644 bas_matrix.1 ${datarootdir}/man/man1/bas_matrix.1
+		/usr/bin/install -c -m 644 bas_msx_compatability.1 ${datarootdir}/man/man1/bas_msx_compatability.1
 		make install-po
 
 .c.o:

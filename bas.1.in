@@ -1,13 +1,14 @@
 ' t
 .TH BAS 1 "@UPDATED@" "" "User commands"
 .SH NAME \"{{{roff}}}\"{{{
-bas \- BASIC interpreter
+bas \- BASIC interpreter (pw)
 .\"}}}
 .SH SYNOPSIS \"{{{
 .ad l
 .B bas
 .RB [ \-a ]
 .RB [ \-b ]
+.RB [ \-c ]
 .RB [ \-l
 .IR file ]
 .RB [ \-n ]
@@ -18,6 +19,7 @@ bas \- BASIC interpreter
 .B bas
 .RB [ \-\-autoexec ]
 .RB [ \-\-backslash\-colon ]
+.RB [ \-\-color256 ]
 .RB [ \-\-lp
 .IR file ]
 .RB [ \-\-no\-end\-program ]
@@ -66,6 +68,10 @@ array indices.
 Call the \fIfunction\fP or procedure.  The ANSI syntax requires the
 keyword \fBcall\fP, whereas other BASIC dialects don't.  In \fBbas\fP,
 \fBcall\fP is optional.
+.\"}}}
+.IP "\fBchain\fP [\fIfile$\fP]" \"{{{
+Chain program \fIfile$\fP execution (with current variables). Unlike RUN
+it does not perform a NEW internally.
 .\"}}}
 .IP "\fBchdir\fP \fIdirectory$\fP" \"{{{
 Change the current directory to \fIdirectory$\fP.
@@ -800,7 +806,8 @@ next print zone, similar to a tabulator.
 Expressions consist of operators or functions that act on integer,
 real (floating point) or string values.  Beside decimal notation,
 integer values can be written as hexadecimal values by prefixing them
-with \fB&h\fP and as octal values by prefixing them with \fB&o\fP.
+with \fB&h\fP and as octal values by prefixing them with \fB&o\fP, 
+and now as binary values by prefixing them with \fB&b\fP.
 String constants may contain paired double quotes to specify double quote
 characters inside strings.  If the constant is terminated by the end of
 the line, the trailing double quote can be omitted.  Numeric constants
@@ -1148,12 +1155,14 @@ anywhere else, hexadecimal values are specified by a leading \fB&h\fP.
 .\"}}}
 .SH OPTIONS \"{{{
 .IP "\fB\-a\fP, \fB\-\-autoexec\fP"
-From the folder \fBBas\Fp is started from, first perform \fBRUN "./autoexec.bas"\fP
+From the folder \fBBas\fP is started from, first perform \fBRUN "./autoexec.bas"\fP
 in the current directory.
 .IP "\fB\-b\fP, \fB\-\-backslash\-colon\fP"
 Convert backslashs to colons.  By default, a backslash is the operator
 for integer division, but in some BASIC dialects it forms compound
 statements as the colon does.
+.IP "\fB\-c\fP, \fB\-\-color256\fP"
+Allows 256 colors instead of 16. The terminal (\fB$TERM\fP) must support it.
 .IP "\fB\-l\fP \fIfile\fP, \fB\-\-lp\fP \fIfile\fP"
 Write \fBLLIST\fP and \fBLPRINT\fP output to \fIfile\fP.  By default,
 that output will be written to \fB/dev/null\fP.

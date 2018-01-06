@@ -76,6 +76,8 @@ static struct Pc nextdata;
 static enum { DECLARE, COMPILE, INTERPRET } pass;
 static int stopped;
 static int optionbase;
+static int optionram;
+static int optionstrict;
 static struct Pc pc;
 static struct Auto stack;
 static struct Program program;
@@ -620,6 +622,16 @@ static struct Value *eval(struct Value *value, const char *desc) /*{{{*/
           ++pc.token;
         }
         /*}}}*/
+        else if (ip==T_BININTEGER) /*{{{*/
+        {
+          /* printf("state %d: shift 4\n",sp->state); */
+          /* printf("state 4: reduce E -> value\n"); */
+          ++sp;
+          sp->state=gotoState[(sp-1)->state];
+          VALUE_NEW_INTEGER(&sp->u.value,pc.token->u.bininteger);
+          ++pc.token;
+        }
+        /*}}}*/
         else if (ip==T_OP) /*{{{*/
         {
           /* printf("state %d: shift 3\n",sp->state); */
@@ -984,6 +996,13 @@ static struct Value *eval8(struct Value *value) /*{{{*/
       break;
     }
     /*}}}*/
+    case T_BININTEGER: /*{{{*/
+    {
+      VALUE_NEW_INTEGER(value,pc.token->u.bininteger);
+      ++pc.token;
+      break;
+    }
+    /*}}}*/
     case T_OP: /*{{{*/
     {
       ++pc.token;
@@ -1051,6 +1070,7 @@ static struct Value *eval(struct Value *value, const char *desc) /*{{{*/
     case T_INTEGER:
     case T_HEXINTEGER:
     case T_OCTINTEGER:
+    case T_BININTEGER:
     case T_IDENTIFIER: if (!TOKEN_ISBINARYOPERATOR((pc.token+1)->type) && (pc.token+1)->type!=T_OP) return eval7(value);
     default: break;
   }
@@ -1294,6 +1314,8 @@ static struct Value *compileProgram(struct Value *v, int clearGlobals) /*{{{*/
         lastdata=&stack.begindata;
       }
       optionbase=0;
+//    optionram=0;
+//    optionstrict=0;
       FS_intr=0;
       stopped=0;
       program.runnable=1;
@@ -1346,6 +1368,8 @@ static void runline(struct Token *line) /*{{{*/
     pc.line=-1;
     pc.token=line;
     optionbase=0;
+//  optionram=0;
+//  optionstrict=0;
     FS_intr=0;
     stopped=0;
     statements(&value);
@@ -1384,6 +1408,8 @@ static void runline(struct Token *line) /*{{{*/
   pc.line=-1;
   pc.token=line;
   optionbase=0;
+//optionram=0;
+//optionstrict=0;
   curdata=stack.begindata;
   nextdata.line=-1;
   Value_destroy(&value);
@@ -1647,6 +1673,7 @@ void bas_interpreter(void) /*{{{*/
   {
     FS_putChars(STDCHANNEL,"bas " VERSION "\n");
     FS_putChars(STDCHANNEL,"Copyright 1999-2014 Michael Haardt.\n");
+    FS_putChars(STDCHANNEL,"Copyright 2017-2018 Paul Wratt (v2.5+).\n");
     FS_putChars(STDCHANNEL,_("This is free software with ABSOLUTELY NO WARRANTY.\n"));
   }
   new();

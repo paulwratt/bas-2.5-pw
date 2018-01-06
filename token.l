@@ -79,6 +79,7 @@ REAL		([0-9]+("!"|"#"))|([0-9]+\.[0-9]*(e("+"|"-")?[0-9]+)?("!"|"#")?)|([0-9]*\.
 INTEGER		[0-9]+%?
 HEXINTEGER	&H[0-9A-F]+
 OCTINTEGER	&O[0-7]+
+BININTEGER	&B[01]+
 IDENTIFIER      ("fn"[ \t]+)?[A-Z][A-Z_0-9\.]*("$"|"%"|"#")?
 STRING          \"([^"]|\"\")*\"
 STRING2		\"([^"]|\"\")*$
@@ -168,6 +169,20 @@ SELECTCASE	select[ \t]+case
                 	  if (cur) cur->u.octinteger=n;
                 	  return T_OCTINTEGER;
                 	}
+{BININTEGER}    	{
+			  int overflow;
+			  long int n;
+
+                	  n=Value_vali(yytext,(char**)0,&overflow);
+                	  if (overflow)
+                	  {
+                	    if (cur) cur->u.junk=yytext[0];
+                	    yyless(1);
+                            return T_JUNK;
+                	  }
+                	  if (cur) cur->u.bininteger=n;
+                	  return T_BININTEGER;
+                	}
 {STRING}        	string(yytext); return T_STRING;
 {STRING2}       	string2(); return T_STRING;
 "("|"["             	return T_OP;
@@ -236,6 +251,13 @@ SELECTCASE	select[ \t]+case
 			  }
 			  return T_CASEVALUE;
 			}
+"chain"          	{
+                          if (cur)
+                          {
+                            cur->statement=stmt_CHAIN;
+                          }
+                          return T_CHAIN;
+                        }
 "chdir"			{
                           if (cur)
                           {
@@ -655,7 +677,7 @@ end[ \t]+function	{
                           }
                           return T_LET;
                         }
-"list"          	{
+"list"|"l."          	{
                           if (cur)
                           {
                             cur->statement=stmt_LIST_LLIST;
@@ -675,13 +697,6 @@ end[ \t]+function	{
                             cur->statement=stmt_LOAD;
                           }
                           return T_LOAD;
-                        }
-"merge"                 {
-                          if (cur)
-                          {
-                            cur->statement=stmt_MERGE;
-                          }
-                          return T_MERGE;
                         }
 "local"			{
                           if (cur)
@@ -776,6 +791,13 @@ end[ \t]+function	{
                           }
                           return T_MAT;
                         }
+"merge"                 {
+                          if (cur)
+                          {
+                            cur->statement=stmt_MERGE;
+                          }
+                          return T_MERGE;
+                        }
 "mkdir"			{
                           if (cur)
                           {
@@ -851,6 +873,13 @@ end[ \t]+function	{
                           }
                           return T_OPTIONBASE;
                         }
+"option"[ \t]+"ram"	{
+                          if (cur)
+                          {
+                            cur->statement=stmt_OPTIONRAM;
+                          }
+                          return T_OPTIONRAM;
+                        }
 "option"[ \t]+"run"	{
                           if (cur)
                           {
@@ -864,6 +893,13 @@ end[ \t]+function	{
                             cur->statement=stmt_OPTIONSTOP;
                           }
                           return T_OPTIONSTOP;
+                        }
+"option"[ \t]+"strict"	{
+                          if (cur)
+                          {
+                            cur->statement=stmt_OPTIONSTRICT;
+                          }
+                          return T_OPTIONSTRICT;
                         }
 "or"			return T_OR;
 "out"			{
@@ -1338,6 +1374,7 @@ void Token_destroy(struct Token *token) /*{{{*/
       case T_CALL:              break;
       case T_CASEELSE:
       case T_CASEVALUE:         free(r->u.casevalue); break;
+      case T_CHAIN:             break;
       case T_CHANNEL:           break;
       case T_CHDIR:             break;
       case T_CLEAR:             break;
@@ -1398,6 +1435,7 @@ void Token_destroy(struct Token *token) /*{{{*/
       case T_GT:                break;
       case T_HEXINTEGER:        break;
       case T_OCTINTEGER:        break;
+      case T_BININTEGER:        break;
       case T_IDENTIFIER:        free(r->u.identifier); break;
       case T_IDIV:              break;
       case T_IDN:               break;
@@ -1450,8 +1488,10 @@ void Token_destroy(struct Token *token) /*{{{*/
       case T_OP:                break;
       case T_OPEN:              break;
       case T_OPTIONBASE:        break;
+      case T_OPTIONRAM:         break;
       case T_OPTIONRUN:         break;
       case T_OPTIONSTOP:        break;
+      case T_OPTIONSTRICT:      break;
       case T_OR:                break;
       case T_OUT:		break;
       case T_PLUS:              break;
@@ -1535,6 +1575,7 @@ struct String *Token_toString(struct Token *token, struct Token *spaceto, struct
     /* T_CALL               */ {"call",1},
     /* T_CASEELSE           */ {"case else",1},
     /* T_CASEVALUE          */ {"case",1},
+    /* T_CHAIN              */ {"chain",1},
     /* T_CHANNEL            */ {"#",0},
     /* T_CHDIR              */ {"chdir",1},
     /* T_CLEAR              */ {"clear",1},
@@ -1595,6 +1636,7 @@ struct String *Token_toString(struct Token *token, struct Token *spaceto, struct
     /* T_GT                 */ {">",0},
     /* T_HEXINTEGER         */ {(const char*)0,0},
     /* T_OCTINTEGER         */ {(const char*)0,0},
+    /* T_BININTEGER         */ {(const char*)0,0},
     /* T_IDENTIFIER         */ {(const char*)0,0},
     /* T_IDIV               */ {"\\",0},
     /* T_IDN                */ {"idn",0},
@@ -1647,8 +1689,10 @@ struct String *Token_toString(struct Token *token, struct Token *spaceto, struct
     /* T_OP                 */ {"(",0},
     /* T_OPEN               */ {"open",1},
     /* T_OPTIONBASE         */ {"option base",1},
+    /* T_OPTIONRAM          */ {"option ram",1},
     /* T_OPTIONRUN          */ {"option run",1},
     /* T_OPTIONSTOP         */ {"option stop",1},
+    /* T_OPTIONSTOP         */ {"option strict",1},
     /* T_OR                 */ {"or",1},
     /* T_OUT                */ {"out",1},
     /* T_PLUS               */ {"+",0},
@@ -1875,6 +1919,7 @@ struct String *Token_toString(struct Token *token, struct Token *spaceto, struct
       case T_INTEGER: String_appendPrintf(s,"%ld",token->u.integer); break;
       case T_HEXINTEGER: String_appendPrintf(s,"&h%lx",token->u.hexinteger); break;
       case T_OCTINTEGER: String_appendPrintf(s,"&o%lo",token->u.octinteger); break;
+      case T_BININTEGER: String_appendBinary(s,"&b%s",token->u.bininteger); break;
       case T_JUNK: String_appendChar(s,token->u.junk); break;
       case T_REAL:
       {

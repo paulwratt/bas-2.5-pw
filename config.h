@@ -1,6 +1,6 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* The version string */
-#define VERSION "2.5"
+#define VERSION "2.5pw"
 
 /* The package name. */
 #define PACKAGE @PACKAGE@

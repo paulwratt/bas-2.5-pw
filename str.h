@@ -16,6 +16,14 @@ struct StringField
   int refCount;
 };
 
+/*
+  these are used to gain 'printf("%b")' integer to binary string
+  needed for String_appendBinary(): inverse of 'atoi' and 'strtoul'
+*/
+extern int strreverse(char* begin, char* end);
+extern int BAS_itoa(int value, char *string, int base);
+extern int BAS_ultostr(unsigned long value, char *string, int base);
+
 extern int cistrcmp(const char *s, const char *r);
 
 extern struct String *String_new(struct String *this);
@@ -27,6 +35,7 @@ extern int String_appendString(struct String *this, const struct String *app);
 extern int String_appendChar(struct String *this, char ch);
 extern int String_appendChars(struct String *this, const char *ch);
 extern int String_appendPrintf(struct String *this, const char *fmt, ...);
+extern int String_appendBinary(struct String *this, const char *fmt, long int arg_li);
 extern int String_insertChar(struct String *this, size_t where, char ch);
 extern int String_delete(struct String *this, size_t where, size_t len);
 extern void String_ucase(struct String *this);

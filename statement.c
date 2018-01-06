@@ -14,6 +14,7 @@
 #include "dmalloc.h"
 #endif
 /*}}}*/
+int use_color256=0;
 
 struct Value *stmt_CALL(struct Value *value) /*{{{*/
 {
@@ -207,17 +208,22 @@ struct Value *stmt_CLS(struct Value *value) /*{{{*/
   return (struct Value*)0;
 }
 /*}}}*/
+/* DONE: --color256 : color 255,255,255 */
 struct Value *stmt_COLOR(struct Value *value) /*{{{*/
 {
+  int colors;
   int foreground=-1,background=-1;
   struct Pc statementpc=pc;
+
+  colors=16; if (use_color256) colors=256;
+  --colors;
 
   ++pc.token;
   if (eval(value,(const char*)0))
   {
     if (value->type==V_ERROR || (pass!=DECLARE && Value_retype(value,V_INTEGER)->type==V_ERROR)) return value;
     foreground=value->u.integer;
-    if (foreground<0 || foreground>15)
+    if (foreground<0 || foreground>colors)
     {
       Value_destroy(value);
       pc=statementpc;
@@ -232,7 +238,7 @@ struct Value *stmt_COLOR(struct Value *value) /*{{{*/
     {
       if (value->type==V_ERROR || (pass!=DECLARE && Value_retype(value,V_INTEGER)->type==V_ERROR)) return value;
       background=value->u.integer;
-      if (background<0 || background>15)
+      if (background<0 || background>colors)
       {
         Value_destroy(value);
         pc=statementpc;
@@ -249,7 +255,7 @@ struct Value *stmt_COLOR(struct Value *value) /*{{{*/
 
         if (value->type==V_ERROR || (pass!=DECLARE && Value_retype(value,V_INTEGER)->type==V_ERROR)) return value;
         bordercolour=value->u.integer;
-        if (bordercolour<0 || bordercolour>15)
+        if (bordercolour<0 || bordercolour>colors)
         {
           Value_destroy(value);
           pc=statementpc;
@@ -259,7 +265,11 @@ struct Value *stmt_COLOR(struct Value *value) /*{{{*/
       Value_destroy(value);
     }
   }
-  if (pass==INTERPRET) FS_colour(STDCHANNEL,foreground,background);
+  if (pass==INTERPRET) 
+  {
+    if (use_color256) FS_colour256(STDCHANNEL,foreground,background);
+    else FS_colour(STDCHANNEL,foreground,background);
+  }
   return (struct Value*)0;
 }
 /*}}}*/
@@ -650,10 +660,12 @@ struct Value *stmt_EDIT(struct Value *value) /*{{{*/
       { "emacs", "+%ld " },
       { "emori", "-l%ld " },
       { "fe", "-l%ld " },
+      { "fte", "-l%ld,0 " },
       { "jed", "+%ld " },
       { "jmacs", "+%ld " },
       { "joe", "+%ld " },
       { "modeori", "-l%ld " },
+      { "nvim", "+%ld " },
       { "origami", "-l%ld " },
       { "vi", "-c%ld " }, 
       { "vim", "+%ld " },
@@ -3042,6 +3054,31 @@ struct Value *stmt_OPTIONSTOP(struct Value *value) /*{{{*/
   return (struct Value*)0;
 }
 /*}}}*/
+/* TODO: "option ram _mach_" */
+struct Value *stmt_OPTIONRAM(struct Value *value) /*{{{*/
+{
+  ++pc.token;
+  if (Value_retype(value,V_STRING)->type==V_ERROR)
+  {
+    if (eval(value,_("address"))->type==V_ERROR || (pass!=DECLARE && Value_retype(value,V_INTEGER)->type==V_ERROR)) return value;
+    if (pass==INTERPRET) optionram=value->u.integer;
+    Value_destroy(value);
+    return (struct Value*)0;
+  }else{
+    // evaluate string (constants) here
+  }
+  return (struct Value*)0;
+}
+/*}}}*/
+struct Value *stmt_OPTIONSTRICT(struct Value *value) /*{{{*/
+{
+  ++pc.token;
+  if (eval(value,_("array subscript base"))->type==V_ERROR || (pass!=DECLARE && Value_retype(value,V_INTEGER)->type==V_ERROR)) return value;
+  if (pass==INTERPRET) optionstrict=value->u.integer;
+  Value_destroy(value);
+  return (struct Value*)0;
+}
+/*}}}*/
 struct Value *stmt_OUT_POKE(struct Value *value) /*{{{*/
 {
   int out,address,val;
@@ -3433,6 +3470,7 @@ struct Value *stmt_RUN(struct Value *value) /*{{{*/
       new();
       Program_destroy(&program);
       program=newprogram;
+      program.unsaved=0;
       if (Program_beginning(&program,&begin)==(struct Pc*)0)
       {
         return Value_new_ERROR(value,NOPROGRAM);
@@ -3453,6 +3491,62 @@ struct Value *stmt_RUN(struct Value *value) /*{{{*/
     pc=begin;
     curdata=stack.begindata;
     Global_clear(&globals);
+    FS_closefiles();
+    Program_trace(&program,&pc,0,1);
+  }
+  return (struct Value*)0;
+}
+/*}}}*/
+struct Value *stmt_CHAIN(struct Value *value) /*{{{*/
+{
+  struct Pc chainpc,begin;
+
+  stack.resumeable=0;
+  ++pc.token;
+  chainpc=pc;
+  if (eval(value,_("file name"))->type==V_ERROR || Value_retype(value,V_STRING)->type==V_ERROR)
+  {
+    pc=chainpc;
+    return value;
+  }
+// not sure how we do this yet
+// is the line running in COMPILE mode?
+// is there any difference in DIRECTMODE?
+  if (pass==INTERPRET)
+    {
+      int chn;
+      struct Program newprogram;
+
+      if ((chn=FS_openin(value->u.string.character))==-1)
+      {
+        pc=chainpc;
+        Value_destroy(value);
+        return Value_new_ERROR(value,IOERROR,FS_errmsg);
+      }
+      Value_destroy(value);
+      Program_new(&newprogram);
+      if (Program_merge(&newprogram,chn,value))
+      {
+        pc=chainpc;
+        Program_destroy(&newprogram);
+        return value;
+      }
+      FS_close(chn);
+      Program_destroy(&program);
+      program=newprogram;
+      program.unsaved=0;
+      if (Program_beginning(&program,&begin)==(struct Pc*)0)
+      {
+        return Value_new_ERROR(value,NOPROGRAM);
+      } 
+    }
+  else Value_destroy(value);
+  
+  if (pass==INTERPRET)
+  {
+    if (compileProgram(value,0)->type==V_ERROR) return value;
+    pc=begin;
+    curdata=stack.begindata;
     FS_closefiles();
     Program_trace(&program,&pc,0,1);
   }

@@ -91,6 +91,7 @@ enum TokenType
   T_CALL,
   T_CASEELSE,
   T_CASEVALUE,
+  T_CHAIN,
   T_CHANNEL,
   T_CHDIR,
   T_CLEAR,
@@ -151,6 +152,7 @@ enum TokenType
   T_GT,
   T_HEXINTEGER,
   T_OCTINTEGER,
+  T_BININTEGER,
   T_IDENTIFIER,
   T_IDIV,
   T_IDN,
@@ -203,8 +205,10 @@ enum TokenType
   T_OP,
   T_OPEN,
   T_OPTIONBASE,
+  T_OPTIONRAM,
   T_OPTIONRUN,
   T_OPTIONSTOP,
+  T_OPTIONSTRICT,
   T_OR,
   T_OUT,
   T_PLUS,
@@ -335,6 +339,7 @@ struct Token
     /* T_GT                 */
     /* T_HEXINTEGER         */ long int hexinteger;
     /* T_OCTINTEGER         */ long int octinteger;
+    /* T_BININTEGER         */ long int bininteger;
     /* T_IDENTIFIER         */ struct Identifier *identifier;
     /* T_IDIV               */
     /* T_IDN                */
@@ -386,6 +391,10 @@ struct Token
     /* T_OP                 */
     /* T_OPEN               */
     /* T_OPTIONBASE         */
+    /* T_OPTIONRAM          */
+    /* T_OPTIONRUN          */
+    /* T_OPTIONSTOP         */
+    /* T_OPTIONSTRICT       */
     /* T_OR                 */
     /* T_OUT                */
     /* T_PLUS               */

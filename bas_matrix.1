@@ -1,0 +1,271 @@
+' t
+.TH BAS 1 "August 23, 2017" "" "Matrix commands"
+.SH NAME \"{{{roff}}}\"{{{
+bas \- BASIC interpreter (pw)
+.\"}}}
+.SH SYNOPSIS \"{{{
+.ad l
+.B bas
+.RB [ \-a ]
+.RB [ \-b ]
+.RB [ \-c ]
+.RB [ \-l
+.IR file ]
+.RB [ \-n ]
+.RB [ \-r ]
+.RB [ \-u ]
+.RI [ "program " [ argument "...]]"
+.br
+.B bas
+.RB [ \-\-autoexec ]
+.RB [ \-\-backslash\-colon ]
+.RB [ \-\-color256 ]
+.RB [ \-\-lp
+.IR file ]
+.RB [ \-\-no\-end\-program ]
+.RB [ \-\-restricted ]
+.RB [ \-\-uppercase ]
+.RI [ "program " [ argument "...]]"
+.br
+.B bas
+.BR \-h | \-\-help
+.br
+.B bas
+.BR \-\-version
+.ad b
+.\"}}}
+.SH DESCRIPTION \"{{{
+.SS "Statements" \"{{{
+Each line of a BASIC program contains one or more of the statements below.
+Multiple statements are grouped by a colon (\fB:\fP) in between them.
+Brackets (\fB[\fP and \fB]\fP) are converted to parentheses when loading
+a program for compatibility with dialects that use them e.g. to indicate
+array indices.
+.IP "\fBmat\fP \fIvariable\fP\fB=\fP\fImatrixVariable\fP" \"{{{
+Matrix variables are one or two-dimensional array variables, but the elements
+at index 0 in each dimension are unused.  The \fIvariable\fP does not
+have to be dimensioned.  Note: If it is, some BASIC dialects require
+that its number of elements must be equal or greater than that of
+the \fImatrixVariable\fP, which is valid for all matrix assignments.
+The \fIvariable\fP will be (re)dimensioned to the geometry of the
+\fImatrixVariable\fP and all elements (starting at index 1, not 0)
+of the \fImatrixVariable\fP will be copied to \fIvariable\fP.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=\fP\fImatrixVariable\fP[\fB+\fP|\fB\-\fP|\fB*\fP \fImatrixVariable\fP]" \"{{{
+The \fIvariable\fP will be (re)dimensioned as for matrix assignments
+and the matrix sum (difference, product) will be assigned to it.  Note:
+Some BASIC dialects require that result matrix \fIvariable\fP must not
+be a factor of the product, e.g. \fBa=a*a\fP is illegal in those dialects.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=(\fP\fIfactor\fP\fB)*\fP\fImatrixVariable\fP" \"{{{
+Assign the scalar product of the \fIfactor\fP and the \fImatrixVariable\fP to
+\fIvariable\fP.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=con\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]" \"{{{
+Assign a matrix whose elements are all \fB1\fP to \fIvariable\fP.
+If dimensions are specified, the matrix \fIvariable\fP will be
+(re)dimensioned.  A missing number of \fIcolumns\fP (re)dimensions the
+variable with 2 columns, including column 0.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=idn\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]" \"{{{
+Assign a matrix whose diagonal elements are \fB1\fP and remaining
+elements are \fB0\fP to \fIvariable\fP.  Some dialects can only
+generate square matrices and use only one argument to specify both
+rows and columns.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=inv(\fP\fImatrixVariable\fP\fB)\fP" \"{{{
+Assign the inverse of the \fImatrixVariable\fP to \fIvariable\fP,
+(re)dimensioning it if needed.  Only two-dimensional square matrixes can be inverted.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=trn(\fP\fImatrixVariable\fP\fB)\fP" \"{{{
+Assign the transposed elements of \fImatrixVariable\fP to \fIvariable\fP,
+(re)dimensioning it if needed.  Note: Some BASIC dialects require that
+\fIvariable\fP and \fImatrixVariable\fP are different.  Only two-dimensional
+matrixes can be transposed.
+.\"}}}
+.IP "\fBmat\fP \fIvariable\fP\fB=zer\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]" \"{{{
+Assign a matrix whose elements are all \fB0\fP to \fIvariable\fP.
+.\"}}}
+.IP "\fBmat input\fP [\fB#\fP\fIchannel%\fP\fB,\fP]\fIvariable\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]{\fB,\fP \fIvariable\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]}" \"{{{
+This statement reads all elements of a matrix \fIvariable\fP without row
+or column 0 from the specified channel (or standard input, if no channel
+is given).  For two-dimensional matrices, the elements are read in row order.
+Elements are separated with a comma.
+If the channel is \fB#0\fP, the prompt \fB?\fP is printed until all elements are read.
+.\"}}}
+.IP "\fBmat print\fP [\fB#\fP\fIchannel%\fP[\fB,\fP]][\fBusing\fP \fIformat\fP\fB;\fP]\fImatrixVariable\fP{\fB;\fP|\fB,\fP \fImatrixVariable\fP}[\fB;\fP|\fB,\fP]" \"{{{
+Print the given \fImatrixVariable\fP, optionally using the \fBusing\fP
+format string or line (see \fBprint using\fP below) for
+formatting the matrix elements.  If no format string is used, a following
+comma prints the elements in zoned format (default), whereas a semicolon
+prints them without extra space between them.  The output starts on a new
+line, unless the output position is already at the beginning of a new line.
+A blank line is printed between matrix variables.
+.\"}}}
+.IP "\fBmat read\fP \fIvariable\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]{\fB,\fP \fIvariable\fP[\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP]}" \"{{{
+Read constants from \fBdata\fP statemets and assign them to the elements
+of the matrix \fIvariable\fP.
+.\"}}}
+.IP "\fBmat redim\fP \fIvariable\fP\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP{\fB,\fP \fIvariable\fP\fB(\fP\fIrows\fP[\fB,\fP\fIcolumns\fP]\fB)\fP}" \"{{{
+Resize a matrix \fIvariable\fP.  The matrix must not exist before, in
+which case it will be created.  If it does exist, it must be of the same
+dimension, but it may be smaller or larger.  Truncated elements will be
+permanently lost, new elements will be set to \fB0\fP for numeric and
+\fB""\fP for string variables.  Identical positions in the old and the
+new matrix keep their value.  Note: Some BASIC dialects require that
+the matrix variable must exist before, some only forbid to grow matrix
+variables beyond their original dimension and some keep the values at
+the same storage position, which appears as if they got shuffled around
+when changing the size and as if previously lost values reappear.
+.\"}}}
+.IP "\fBmat write\fP [\fB#\fP\fIchannel%\fP[\fB,\fP]]\fImatrixVariable\fP{\fB;\fP|\fB,\fP \fImatrixVariable\fP}[\fB;\fP|\fB,\fP]" \"{{{
+Write the values of the given \fImatrixVariable\fP to the specified channel or
+to standard output if no channel is given.  Different values are
+separated by commas and a newline is written at the end of a line.
+Strings will be written enclosed in double quotes and positive numbers
+are not written with a heading blank.
+.\"}}}
+.IP "\fBoption base\fP \fIbase\fP" \"{{{
+Specify the lowest array index for \fBdim\fP (zero by default).  Note:
+Many BASIC dialects enforce the base to be 0 or 1, further they require
+the base to be specified only once and before creating any arrays.
+\fBBas\fP allows to set an individual base for any array, but all
+\fBmat\fP functions require the bases of their operands to be equal and
+to be 0 or 1.
+.\"}}}
+.IP "\fBxref\fP" \"{{{
+Output a list of all functions, global variables, \fBGOSUB\fP and \fBGOTO\fP
+statements and the line numbers where they are referenced.
+.\"}}}
+.\"}}}
+.SS "Expressions and Functions" \"{{{
+Expressions consist of operators or functions that act on integer,
+real (floating point) or string values.  Beside decimal notation,
+integer values can be written as hexadecimal values by prefixing them
+with \fB&h\fP and as octal values by prefixing them with \fB&o\fP, 
+and now as binary values by prefixing them with \fB&b\fP.
+String constants may contain paired double quotes to specify double quote
+characters inside strings.  If the constant is terminated by the end of
+the line, the trailing double quote can be omitted.  Numeric constants
+with the suffix \fB#\fP or \fB!\fP are always regarded as floating point
+constants, \fBbas\fP ignores the precision specification, because it
+does not offer different precisions.  Integer constants may be followed
+by the suffix \fB%\fP.  If an integer literal is outside the integer
+value range, it is treated as a floating point literal.
+.PP
+The table below shows the available operators with decreasing priority.
+The operator \fB=>\fP is converted to \fB>=\fP, \fB=<\fP is converted
+to \fB<=\fP and \fB><\fP is converted to \fB<>\fP when programs are loaded.
+.PP
+.TS
+box,center;
+c l
+cfB l.
+operator	meaning
+_
+^	exponentiation
+_
+\-	unary negation
++	unary plus
+_
+*	multiplication
+/	floating-point division
+\e	integer division (equal to fix(a/b))
+mod	modulo
+_
++	addition, string concatenation
+\-	substraction
+_
+>	greater than
+>=	greater than or equal to
+\&=	equal to
+<>	not equal to
+<=	less than or equal to
+<	less than
+_
+not	binary complement
+_
+and	binary and
+_
+or	binary or
+xor	binary exclusive or
+eqv	binary equivalent
+imp	binary implication
+.TE
+.sp .5v
+.PP
+Besides operators, various builtin functions can be used in expressions.
+The dollar character (\fB$\fP) denotes that the argument must be of
+the type string.  The actual parameters of functions, both builtin
+and user-defined, as well as subroutines, are passed by value.  Note:
+Modern (not old) ANSI BASIC passes actual parameters by reference.
+Many classic dialects don't offer call by reference and \fBbas\fP
+follows that direction.  Arguments to functions and subroutines must
+be enclosed in parentheses.  Note: Some dialects allow to omit them,
+which introduces ambiguity in some cases.
+.IP "\fBdet\fP"
+Return the determinant of the last matrix inverted.
+.\"}}}
+.\"}}}
+.SH OPTIONS \"{{{
+.IP "\fB\-a\fP, \fB\-\-autoexec\fP"
+From the folder \fBBas\fP is started from, first perform \fBRUN "./autoexec.bas"\fP
+in the current directory.
+.IP "\fB\-b\fP, \fB\-\-backslash\-colon\fP"
+Convert backslashs to colons.  By default, a backslash is the operator
+for integer division, but in some BASIC dialects it forms compound
+statements as the colon does.
+.IP "\fB\-c\fP, \fB\-\-color256\fP"
+Allows 256 colors instead of 16. The terminal (\fB$TERM\fP) must support it.
+.IP "\fB\-l\fP \fIfile\fP, \fB\-\-lp\fP \fIfile\fP"
+Write \fBLLIST\fP and \fBLPRINT\fP output to \fIfile\fP.  By default,
+that output will be written to \fB/dev/null\fP.
+.IP "\fB\-n\fP, \fB\-\-no\-end\-program\fP"
+Prevents 
+.B END program
+from being printed
+.IP "\fB\-r\fP, \fB\-\-restricted\fP"
+Restricted operation which does not allow to fork a shell.
+.IP "\fB\-u\fP, \fB\-\-uppercase\fP"
+Output all tokens in uppercase.  By default, they are lowercase,
+which is easier to read, but some BASIC dialects require uppercase.
+This option allows to save programs for those dialects.
+.IP "\fB\-h\fP, \fB\-\-help\fP"
+Output usage and exit.
+.IP "\fB\-v\fP, \fB\-\-version\fP"
+Display version information and exit.
+.\"}}}
+.SH AUTHOR \"{{{
+This program is copyright 1999\(en2014 Michael Haardt
+<michael@moria.de>.
+.PP
+Custom MAN pages & MSX-BASIC extensions copyright 2017 Paul Wratt 
+<paul.wratt@gmail.com>
+.PP
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+.PP
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+.PP
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+.\"}}}
+.SH HISTORY \"{{{
+There has been a \fIbas\fP(1) command in UNIX v7, but its syntax
+was strongly influenced by C, unlike common classic BASIC dialects, and
+thus not compatible with this implementation. MSX-BASIC is an extension
+of Microsoft BASIC v4.0.
+.\"}}}
+.SH "SEE ALSO" \"{{{
+The Usenet group comp.lang.basic.misc discusses the classic BASIC dialect.
+.\"}}}

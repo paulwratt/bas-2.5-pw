@@ -1,5 +1,5 @@
 ' t
-.TH BAS 1 "August 19, 2017" "" "User commands"
+.TH BAS 1 "August 19, 2017" "" "Direct Mode"
 .SH NAME \"{{{roff}}}\"{{{
 bas \- BASIC interpreter (pw)
 .\"}}}
@@ -58,17 +58,26 @@ end of the program.  If the
 first line of a program file begins with \fB#!\fP, it is ignored by
 the interpreter.
 .\"}}}
-.SS "Statements" \"{{{
-Each line of a BASIC program contains one or more of the statements below.
-Multiple statements are grouped by a colon (\fB:\fP) in between them.
+.SS "Statements in Direct Mode" \"{{{
+In direct mode, each line contains one or more of the statements below.
+Multiple statements are seperated by a colon (\fB:\fP) in between them.
 Brackets (\fB[\fP and \fB]\fP) are converted to parentheses when loading
 a program for compatibility with dialects that use them e.g. to indicate
-array indices.
-.IP "[\fBcall\fP] \fIfunction\fP[\fB(\fP\fIargument\fP{\fB,\fP \fIargument\fP\fB)\fP]" \"{{{
-Call the \fIfunction\fP or procedure.  The ANSI syntax requires the
-keyword \fBcall\fP, whereas other BASIC dialects don't.  In \fBbas\fP,
-\fBcall\fP is optional.
-.\"}}}
+array indices. Line numbers are not used in direct mode. 
+.PP
+In direct mode not all
+.B Bas
+statements are available, however most functions are.
+For example you can not define unqualified variables, functions, sub-
+routines, procedures, or data statements, nor can you call or use those 
+defined in a program. Basically no statements beginning with
+.B DEF
+can be used in direct mode.
+.PP
+Note also that although you can have a line in a program containing the 
+.B SAVE
+statement, it causes an error on execution, only being executed 
+in direct mode.
 .IP "\fBchain\fP [\fIfile$\fP]" \"{{{
 Chain program \fIfile$\fP execution (with current variables). Unlike RUN
 it does not perform a NEW internally.
@@ -102,42 +111,8 @@ The following colours are available: black (0), blue (1), green (2), cyan
 .IP "\fBcopy\fP \fIfrom$\fP \fBto\fP \fIto$\fP" \"{{{
 Copy a file.
 .\"}}}
-.IP "\fBdata\fP \fIinput-data\fP{\fB,\fP\fIinput-data\fP}" \"{{{
-Store data to be accessed by \fBread\fP.  The \fIinput-data\fP has the
-same format as data that is read by \fBinput\fP statements.
-Data can not be stored in direct mode.  This statement is ignored
-during execution.  Abbreviation: \fBd.\fP
-.\"}}}
 .IP "\fBdec\fP \fIlvalue\fP{\fB,\fP\fIlvalue\fP}" \"{{{
 Decrement \fIlvalue\fP.
-.\"}}}
-.IP "\fBdef fn\fP\fIfunction\fP[\fB(\fP\fIparameter\fP[\fB,\fP\fIparameter\fP...]\fB)\fP]" \"{{{
-Define a function.  Function identifiers always start with \fBfn\fP.
-A function ends and returns its value using \fB=\fP\fIexpression\fP.
-Additionally, a function may return a value using \fBfnreturn\fP
-\fIexpression\fP before reaching its end.  Functions can not be declared
-in direct mode.  Note: Multi line functions are not supported by all
-BASIC dialects.  Some dialects allow white space between the \fBfn\fP
-and the rest of the identifier, because they use \fBfn\fP as token
-to mark function identifiers for both declaration and function call.
-\fBBas\fP removes that space when loading a program.
-.\"}}}
-.IP "\fBdefdbl\fP \fIvariable\fP[\fB\-\fP\fIvariable\fP]" \"{{{
-Declare the global \fIvariable\fP as real.  Only unqualified variables (no
-type extension) can be declared.  Variable ranges can only be built from
-single letter variables.  Declaration is done at compile time.
-.\"}}}
-.IP "\fBdefint\fP \fIvariable\fP[\fB\-\fP\fIvariable\fP]" \"{{{
-Declare the global \fIvariable\fP as integer.
-.\"}}}
-.IP "\fBdefstr\fP \fIvariable\fP[\fB\-\fP\fIvariable\fP]" \"{{{
-Declare the global \fIvariable\fP as string.
-.\"}}}
-.IP "\fBdef proc\fP\fIfunction\fP[\fB(\fP\fIparameter\fP[\fB,\fP\fIparameter\fP...]\fB)\fP]" \"{{{
-Define a procedure (function that does not return a value).  Procedure
-identifiers always start with \fBproc\fP if defined this way.  A procedure
-ends with \fBend proc\fP.  This is the BBC BASIC syntax.  Procedures can
-not be declared in direct mode.
 .\"}}}
 .IP "\fBdelete\fP [\fIfrom\fP][\fB\-\fP|\fB,\fP][\fIto\fP]" \"{{{
 Delete the specified line or range of lines.  Unlike \fBlist\fP, the lines
@@ -205,12 +180,6 @@ Modify or add an environment \fIentry$\fP of the form
 .\"}}}
 .IP "\fBerase\fP \fIvariable\fP{\fB,\fP\fIvariable\fP}" \"{{{
 Erase the array \fIvariable\fP.
-.\"}}}
-.IP "\fBfunction\fP \fIfunction\fP[\fB(\fP\fIparameter\fP[\fB,\fP\fIparameter\fP...]\fB)\fP]" \"{{{
-Define a function (ANSI BASIC style).  A function ends using \fBend function\fP.
-The name of the function is a local variable inside the function and its
-value is returned as function result when program execution reaches the
-end of the function.  Functions can not be declared in direct mode.
 .\"}}}
 .IP "\fBfield\fP [\fB#\fP]\fIchannel%\fP\fB,\fP\fIwidth\fP \fBas\fP \fIlvalue$\fP {\fB,\fP\fIwidth\fP \fBas\fP \fIlvalue$\fP}" \"{{{
 Allocate \fIwidth\fP bytes in the record buffer to the \fIlvalue$\fP.
@@ -340,10 +309,6 @@ the listing to the lp channel.
 Load the program \fIfile$\fP (direct mode only).  The name may
 be omitted to load a program of the name used by a previous \fBload\fP
 or \fBsave\fP statement.
-.\"}}}
-.IP "\fBlocal\fP \fIvariable\fP{\fB,\fP\fIvariable\fP}" \"{{{
-Declare a variable local to the current function.  The scope ranges
-from the declaration to the end of the function.
 .\"}}}
 .IP "\fBlocate\fP \fIline\fP,\fIcolumn\fP" \"{{{
 Locate the cursor at the given \fIline\fP and \fIcolumn\fP.  The first
@@ -652,10 +617,6 @@ written there instead of being written to the current position.
 Seed the random number generator.  If no argument is given, it will be
 initialised with a random number.
 .\"}}}
-.IP "\fBread\fP \fIlvalue\fP{\fB,\fP\fIlvalue\fP}" \"{{{
-Read constants from \fBdata\fP statements and assign them to the
-\fIlvalue\fPs.
-.\"}}}
 .IP "\fBrem\fP \fIarbitrary text\fP" \"{{{
 This statement introduces comments.
 .\"}}}
@@ -677,15 +638,6 @@ be used for both.
 Execute the loop body and repeat doing so if the \fIcondition\fP is
 not zero.  The loop body will be executed at least once.  Abbreviation:
 \fBrep.\fP
-.\"}}}
-.IP "\fBrestore\fP [\fIline\fP]" \"{{{
-Restore the data pointer to the first \fBdata\fP statement for reading
-data again.  An optional line number restores the pointer to the first
-\fBdata\fP statement in that line.  Abbreviation: \fBres.\fP  Note: Some
-BASIC dialects allow to specify a line without a \fBdata\fP statement
-and search beginning from that line for one.  This implementation
-does not allow that, because it is more often an error than used as
-a feature.
 .\"}}}
 .IP "\fBresume\fP \fIline\fP" \"{{{
 End an exception handler and continue execution at the specified line.
@@ -734,15 +686,6 @@ fractional seconds can be used.
 .IP "\fBstop\fP" \"{{{
 Stop the program.  Apart from printing where the program stopped, this
 is identical to \fBend\fP.
-.\"}}}
-.IP "\fBsub\fP\fIfunction\fP[\fB(\fP\fIparameter\fP[\fB,\fP\fIparameter\fP...]\fB)\fP]" \"{{{
-Define a procedure (function that does not return a value).  A procedure
-ends with \fBsubend\fP; the alternative forms \fBsub end\fP and \fBend
-sub\fP are converted to \fBsubend\fP when loading programs.  A procedure
-can be left by \fBsubexit\fP; again the alternative forms \fBsub exit\fP and
-\fBexit sub\fP and converted to \fBsubexit\fP when loading programs.
-Procedures can not be declared in direct
-mode.  This is the ANSI syntax.
 .\"}}}
 .IP "\fBswap\fP \fIlvalue1\fP\fB,\fP\fIlvalue2\fP" \"{{{
 Swap the contents of \fIlvalue1\fP and \fIlvalue2\fP.  Both must
@@ -803,8 +746,8 @@ next print zone, similar to a tabulator.
 .\"}}}
 .\"}}}
 .SS "Expressions and Functions" \"{{{
-Expressions consist of operators or functions that act on integer, 
-real (floating point) or string values.  Beside decimal notation, 
+Expressions consist of operators or functions that act on integer,
+real (floating point) or string values.  Beside decimal notation,
 integer values can be written as hexadecimal values by prefixing them
 with \fB&h\fP and as octal values by prefixing them with \fB&o\fP, 
 and now as binary values by prefixing them with \fB&b\fP.

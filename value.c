@@ -42,10 +42,10 @@ extern long int lrint(double x);
 /* variables */ /*{{{*/
 static const char *typestr[]=
 {
-  (const char*)0,
-  (const char*)0,
+  (const char*)0,    /* ??? what (&H) ??? */
+  (const char*)0,    /* ??? what (&O) ??? */
   "integer",
-  (const char*)0,
+  (const char*)0,    /* ??? what ??? */
   "real",
   "string",
   "void"
@@ -60,6 +60,7 @@ _("void")
 #endif
 /*}}}*/
 
+/* does this include &H and &O, if so add &B */
 const enum ValueType Value_commonType[V_VOID+1][V_VOID+1]=
 {
   { 0, 0,       0,         0,       0,       0,        0       },
@@ -151,6 +152,7 @@ long int Value_vali(const char *s, char **end, int *overflow) /*{{{*/
   errno=0;
   if (*s=='&' && tolower(*(s+1))=='h') n=strtoul(s+2,end,16);
   else if (*s=='&' && tolower(*(s+1))=='o') n=strtoul(s+2,end,8);
+  else if (*s=='&' && tolower(*(s+1))=='b') n=strtoul(s+2,end,2);
   else n=strtol(s,end,10);
   *overflow=(errno==ERANGE);
   return n;

@@ -256,16 +256,16 @@ static int initTerminal(int chn) /*{{{*/
       }
       case 1:
       {
-        cl=tgetstr("cl",&cap);
-        cm=tgetstr("cm",&cap);
-        ce=tgetstr("ce",&cap);
-        cr=tgetstr("cr",&cap);
-        md=tgetstr("md",&cap);
-        me=tgetstr("me",&cap);
-        AF=tgetstr("AF",&cap);
-        AB=tgetstr("AB",&cap);
-        Co=tgetnum("Co");
-        if ((NC=tgetnum("NC"))==-1) NC=0;
+        cl=tgetstr("cl",&cap); /* clear screen and home cursor */
+        cm=tgetstr("cm",&cap); /* move to row #1 col #2 */
+        ce=tgetstr("ce",&cap); /* clear to end of line */
+        cr=tgetstr("cr",&cap); /* carriage return */
+        md=tgetstr("md",&cap); /* turn on bold (extra bright) mode */
+        me=tgetstr("me",&cap); /* turn off all attributes */
+        AF=tgetstr("AF",&cap); /* set foreground to color N */
+        AB=tgetstr("AB",&cap); /* set background to color N */
+        Co=tgetnum("Co");      /* maximum colors on screen */
+        if ((NC=tgetnum("NC"))==-1) NC=0; /* attributes not with color */
         return 0;
       }
     }
@@ -303,7 +303,7 @@ static int colour(int chn, int foreground, int background) /*{{{*/
 {
   if (AF && AB && Co>=8)
   {
-    static int map[8]={ 0,4,2,6,1,5,3,7 };
+    static int map[8]={ 0,4,2,6,1,5,3,7 }; /* remap color numbers so setab/setaf (AB/AF) emulates setb/setf (MSX) values */
 
     if (foreground!=-1)
     {
@@ -325,6 +325,41 @@ static int colour(int chn, int foreground, int background) /*{{{*/
     if (background!=-1)
     {
       if (mytputs(tgoto(AB,0,map[background&7]),0,outc)==-1) return -1;
+    }
+  }
+  return 0;
+}
+/*}}}*/
+/* TODO: --color256 : color 255,255,255 */
+static int colour256(int chn, int foreground, int background) /*{{{*/
+{
+  if (AF && AB && Co>=8)
+  {
+    static int map[8]={ 0,4,2,6,1,5,3,7 };
+
+    if (foreground!=-1)
+    {
+      if (foreground>7 && foreground<=15)
+      {
+          foreground=(map[foreground&7])+8;
+      }
+      else if (foreground<=7)
+      {
+          foreground=(map[foreground&7]);
+      } 
+      if (mytputs(tgoto(AF,0,foreground),0,outc)==-1) return -1;
+    }
+    if (background!=-1)
+    {
+      if (background>7 && background<=15)
+      {
+          background=(map[background&7])+8;
+      }
+      else if (background<=7)
+      {
+          background=(map[background&7]);
+      }
+      if (mytputs(tgoto(AB,0,background),0,outc)==-1) return -1;
     }
   }
   return 0;
@@ -364,6 +399,12 @@ static int locate(int chn, int line, int column) /*{{{*/
 }
 /*}}}*/
 static int colour(int chn, int foreground, int background) /*{{{*/
+{
+  FS_errmsg=_("This installation does not support terminal handling");
+  return -1;
+}
+/*}}}*/
+static int colour256(int chn, int foreground, int background) /*{{{*/
 {
   FS_errmsg=_("This installation does not support terminal handling");
   return -1;
@@ -1072,6 +1113,23 @@ int FS_colour(int chn, int foreground, int background) /*{{{*/
     return -1;
   }
   if (colour(chn,foreground,background)==-1) return -1;
+  f->outforeground=foreground;
+  f->outbackground=background;
+  return 0;
+}
+/*}}}*/
+int FS_colour256(int chn, int foreground, int background) /*{{{*/
+{
+  struct FileStream *f;
+
+  if (opened(chn,0)==-1) return -1;
+  f=file[chn];
+  if (!f->tty)
+  {
+    FS_errmsg=_("not a terminal");
+    return -1;
+  }
+  if (colour256(chn,foreground,background)==-1) return -1;
   f->outforeground=foreground;
   f->outbackground=background;
   return 0;

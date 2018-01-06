@@ -1,0 +1,284 @@
+' t
+.TH BAS 1 "August 19, 2017" "" "MSX Compatability"
+.SH NAME \"{{{roff}}}\"{{{
+bas \- BASIC interpreter (pw)
+.\"}}}
+.SH SYNOPSIS \"{{{
+.ad l
+.B bas
+.RB [ \-a ]
+.RB [ \-b ]
+.RB [ \-c ]
+.RB [ \-l
+.IR file ]
+.RB [ \-n ]
+.RB [ \-r ]
+.RB [ \-u ]
+.RI [ "program " [ argument "...]]"
+.br
+.B bas
+.RB [ \-\-autoexec ]
+.RB [ \-\-backslash\-colon ]
+.RB [ \-\-color256 ]
+.RB [ \-\-lp
+.IR file ]
+.RB [ \-\-no\-end\-program ]
+.RB [ \-\-restricted ]
+.RB [ \-\-uppercase ]
+.RI [ "program " [ argument "...]]"
+.br
+.B bas
+.BR \-h | \-\-help
+.br
+.B bas
+.BR \-\-version
+.ad b
+.\"}}}
+.SH "MSX Compatability" \"{{{
+Binary representation can now be used in the same way as \fB&h\fP and \fB&o\fP, 
+with \fB&b\fP.
+To improve compatability with MSX-BASIC the missing commands are
+slowly being added by me (Paul Wratt). In the meantime, here some examples
+of how to get the same functionality in various different ways.
+.SS VAR=FRE(0) or ?FRE(0) \"{{{
+Returns free RAM memory in bytes.
+.TS
+box,left;
+cfB l.
+  10	dim fre(0) : fre(0)=0
+4010	cmd$="cat /proc/meminfo | grep MemFree >> /var/temp/.bas.mem"
+4011	shell cmd$
+4020	open "/var/temp/.bas.mem" for input as #1
+4030	if not eof(1) then line input #1,x$
+4040	close #1
+4050	fre(0)=val(ltrim$(mid$(x$,9,(len(x$)-11))))*8
+.TE
+.PP
+Here we pipe the Linux results to the temporary file
+.B /var/temp/.bas.mem
+then read it back, extracting and converting to an integer. We multiply the
+result by eight (8) because it is stored as kilo-bytes.
+.B fre(0)
+uses a one dimension array to fake the MSX-BASIC function. Note that
+.B fre(n)
+where 
+.B n>0
+will generate an error (array out of bounds) using this method.
+.\"}}}
+.SS FILES \"{{{
+Prints a list of files across th screen.
+.TS
+box,left;
+cfB l.
+ 	shell "ls --group-directories-first"
+.TE
+.PP
+This will work exactly as FILES does on an MSX 1, ie. prints only to the screen.
+It also requires a search and replace for all instances of FILES.
+.\"}}}
+.SS FILES "*.ext" \"{{{
+Prints a specific list of files across the screen.
+.TS
+box,left;
+cfB l.
+ 	fs$="*.bas" : shell "ls --group-directories-first "+fs$
+.TE
+.PP
+This will work exactly as FILES does on an MSX 1, ie. prints only to the screen.
+It also requires a search and replace for all instances of FILES.
+.\"}}}
+.SS FILES "*.ext",l \"{{{
+Prints a specific list of files across the screen.
+.TS
+box,left;
+cfB l.
+ 	fs$="*.bas" : shell "ls -l --group-directories-first "+fs$
+.TE
+.PP
+This will work similar to FILES on an MSX 2, but prints only to the screen.
+It also requires a search and replace for all instances of FILES.
+.\"}}}
+.SS VAR$()=FILES \"{{{
+Returns and populates a text array VAR$ with a list of files.
+.TS
+box,left;
+cfB l.
+ 100	cwf$="/var/temp/.bas.dir": nde=100 : dim dl$(nde) : mdl=0
+1000	cmd$="pwd>"+cwf$ : shell cmd$
+1010	cmd$="ls -1pL --group-directories-first>>"+cwf$ : shell cmd$
+1020	open cwf$ for input lock read as #1
+1030	i=0
+1040	while not eof(1)
+1050	  line input #1,dl$(i)
+1055	  if i>0 and len(dl$(i))>mdl then mdl=len(dl$(i))
+1060	  inc i
+1070	wend
+1071	close #1
+.TE
+.PP
+This will work similar to FILES on an MSX 2, here we break the filenames into a text array.
+Note that 
+.B dl$(0)
+holds the Path to the Working Directory (
+.B pwd
+eg. "/home/user/pi/BASIC"), and 
+.B dl$(1) to dl$(mdl)
+holds the filenames. Also, if a filename ends in "/" then it is a 
+directory (eg. "something/") according to the 
+.B pL
+options of LS, while
+.B 1
+(one) outputs one entry per line, in short form.
+This requires a subFILES function, or a GOSUB RETURN combo, to use.
+.\"}}}
+.SS CSRLIN and POS(0)
+Return CurSoR LINe and POSition
+.PP
+Although the POS functions exists, there is currently no simple way to add CSRLIN to  
+.B Bas
+source code, so your program will need to keep track with the use of
+.B LOCATE y,x : PRINT ;
+combinations. You can read and set the correct text dimensions using the following:
+.TS
+box,left;
+cfB l.
+20	l=24 : if environ$("LINES")<>"" then l=val(environ$("LINES"))
+21	c=80 : if environ$("COLUMNS")<>"" then c=val(environ$("COLUMNS"))
+22	width c
+.TE
+.PP
+However you will probably need the following in 
+.B /etc/profile
+to get it to work correctly, as 
+.B Bas
+uses the output from the (SH)
+.B env
+command, not the BASH 
+.B set
+command.
+.TS
+x,left;
+cfB l.
+ 	# export some BASH vars (set) to SH (env) (for 'bas')
+ 	export LINES=$LINES
+ 	export COLUMNS=$COLUMNS
+ 	export EDITOR=`which vim.tiny`
+ 	
+ 	# normal profile stuff
+ 	
+.TE
+.PP
+Alternatively you can write an
+.B alias
+for
+.B bas
+something like:
+.TS
+x,left;
+cfB l.
+ 	alias bas="LINES=$LINES COLOUMNS=$COLUMNS bas -can"
+.TE
+.\"}}}
+.SS MERGE "filename.bas \"{{{
+Merge program with current listing. (direct mode only).
+.PP
+The
+.B MERGE 
+command has already been added, and unlike the
+.B LOAD
+command, it does not perform a
+.B NEW
+internally. Note that you can place LOAD, SAVE, MERGE command in program lines, but if 
+they are executed the program will break with an error. In most programs I have the 
+following on the last lines:
+.TS
+box,left;
+cfB l.
+999997	color 15,1,1
+999998	end
+999999	save "program.bas"
+.TE
+.PP
+Merge also retains the current variables which can be useful while edit a program.
+.\"}}}
+.SS CHAIN "filename.bas \"{{{
+Chain program execution with current variables (and stack).
+.PP
+Although not technically an MSX statement, the
+.B CHAIN 
+command has now been added, and unlike the
+.B RUN
+command, it does not perform a
+.B NEW
+internally. It begins execution at the beginning of the new program 
+but retains all global variables. SUB's, PROC's and FN's may also 
+continue to work. If you see your program starting to branch crazily, 
+its because you have to programatically manage the stack. For example 
+if you CHAIN to another program from within a SUB, GOSUB or FOR statement
+a RETURN or NEXT will \fIpop\fP the corresponding line number off the stack to
+branch the program execution (as it should).
+.PP
+(more to come).
+.\"}}}
+.SH OPTIONS \"{{{
+.IP "\fB\-a\fP, \fB\-\-autoexec\fP"
+From the folder \fBBas\fP is started from, first perform \fBRUN "./autoexec.bas"\fP
+in the current directory.
+.IP "\fB\-b\fP, \fB\-\-backslash\-colon\fP"
+Convert backslashs to colons.  By default, a backslash is the operator
+for integer division, but in some BASIC dialects it forms compound
+statements as the colon does.
+.IP "\fB\-c\fP, \fB\-\-color256\fP"
+Allows 256 colors instead of 16. The terminal (\fB$TERM\fP) must support it.
+.IP "\fB\-l\fP \fIfile\fP, \fB\-\-lp\fP \fIfile\fP"
+Write \fBLLIST\fP and \fBLPRINT\fP output to \fIfile\fP.  By default,
+that output will be written to \fB/dev/null\fP.
+.IP "\fB\-n\fP, \fB\-\-no\-end\-program\fP"
+Prevents 
+.B END program
+from being printed
+.IP "\fB\-r\fP, \fB\-\-restricted\fP"
+Restricted operation which does not allow to fork a shell.
+.IP "\fB\-u\fP, \fB\-\-uppercase\fP"
+Output all tokens in uppercase.  By default, they are lowercase,
+which is easier to read, but some BASIC dialects require uppercase.
+This option allows to save programs for those dialects.
+.IP "\fB\-h\fP, \fB\-\-help\fP"
+Output usage and exit.
+.IP "\fB\-v\fP, \fB\-\-version\fP"
+Display version information and exit.
+.\"}}}
+.SH AUTHOR \"{{{
+This program is copyright 1999\(en2014 Michael Haardt 
+<michael@moria.de>.
+.PP
+Custom MAN pages & MSX-BASIC extensions copyright 2017 Paul Wratt 
+<paul.wratt@gmail.com>
+.PP
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+.PP
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+.PP
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+.\"}}}
+.SH HISTORY \"{{{
+There has been a \fIbas\fP(1) command in UNIX v7, but its syntax
+was strongly influenced by C, unlike common classic BASIC dialects, and
+thus not compatible with this implementation. MSX-BASIC is an extension
+of Microsoft BASIC v4.0.
+.\"}}}
+.SH "SEE ALSO" \"{{{
+The Usenet group comp.lang.basic.misc discusses the classic BASIC dialect.
+.\"}}}

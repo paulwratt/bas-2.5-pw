@@ -90,6 +90,7 @@ extern int FS_tab(int dev, int position);
 extern int FS_cls(int chn);
 extern int FS_locate(int chn, int line, int column);
 extern int FS_colour(int chn, int foreground, int background);
+extern int FS_colour256(int chn, int foreground, int background);
 extern int FS_get(int chn);
 extern int FS_getChar(int dev);
 extern int FS_eof(int chn);
