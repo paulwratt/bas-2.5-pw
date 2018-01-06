@@ -5,6 +5,9 @@ This file is supplimentary to the BAS project, last edited: Jan 6 2018
 
 Here **pw** means version 2.5 (and later) _with_ _extensions_ (bas-2.\*pw == bas-2.5-pw). BAS v2.5 contains only _generic_ additions, changes, bugfixes an extensions.  Language extensions like those found in MSX-BASIC, Amstrad Locomotive BASIC, BBC BASIC or Sinclair BASIC on the Spectrum, are developed here.
 
+# binaries
+All binary objects present in the repo are compiled on a RPi2 with gcc-6.1.0, on a customised (mostly console only) SD card image of PipaOS 5.0 with minimal X-Windows (for Chromium Browser on VT8).
+
 # additions
 See README. Some additions have been deemed _generic_ for modern day useful purposes, even thought they are not part of the ANSI BASIC standard, and may have been added to some variants of BASIC. They have therfore already been added to **BAS-2.5**. They are:
   * MERGE - merge program source code (LOAD without internal NEW)
